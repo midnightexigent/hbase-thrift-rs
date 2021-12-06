@@ -1,15 +1,13 @@
 use crate::{
-    hbase::{THBaseServiceSyncClient, TResult, TScan, TTHBaseServiceSyncClient},
-    scan::Scan,
-    Error, Result,
+    hbase::{THBaseServiceSyncClient, TScan},
+    scan::Scan, Result,
 };
 use std::net::ToSocketAddrs;
 use thrift::protocol::{
     TCompactInputProtocol, TCompactOutputProtocol, TInputProtocol, TOutputProtocol,
 };
 use thrift::transport::{
-    ReadHalf, TBufferChannel, TFramedReadTransport, TFramedWriteTransport, TIoChannel,
-    TReadTransport, TTcpChannel, WriteHalf,
+    ReadHalf, TFramedReadTransport, TFramedWriteTransport, TIoChannel, TTcpChannel, WriteHalf,
 };
 
 pub struct Client<IP: TInputProtocol, OP: TOutputProtocol>(THBaseServiceSyncClient<IP, OP>);

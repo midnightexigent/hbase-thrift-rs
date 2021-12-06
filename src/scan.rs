@@ -28,7 +28,9 @@ impl<'a> Scan<'a> {
 }
 impl Drop for Scan<'_> {
     fn drop(&mut self) {
-        self.hbase.close_scanner(self.scanner_id);
+        if let Err(err) = self.hbase.close_scanner(self.scanner_id) {
+            log::warn!("failed to close scanner: {}", err)
+        }
     }
 }
 impl Iterator for Scan<'_> {
@@ -43,7 +45,7 @@ impl Iterator for Scan<'_> {
                     self.current = scanner_rows.into_iter();
                     self.current.next().map(Ok)
                 }
-                Err(error) => Some(Err(Error::Thrift(error))),
+                Err(err) => Some(Err(Error::Thrift(err))),
             }
         }
     }
