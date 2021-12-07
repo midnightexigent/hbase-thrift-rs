@@ -1,6 +1,7 @@
 use crate::{
-    hbase::{THBaseServiceSyncClient, TScan},
-    scan::Scan, Result,
+    hbase::{THBaseServiceSyncClient, TPut, TScan, TTHBaseServiceSyncClient},
+    scan::Scan,
+    Result,
 };
 use std::net::ToSocketAddrs;
 use thrift::protocol::{
@@ -18,6 +19,9 @@ impl<IP: TInputProtocol, OP: TOutputProtocol> Client<IP, OP> {
     }
     pub fn scan(&mut self, table: impl Into<Vec<u8>>, tscan: TScan, num_rows: i32) -> Result<Scan> {
         Scan::new(table, tscan, num_rows, &mut self.0)
+    }
+    pub fn put(&mut self, table: impl Into<Vec<u8>>, tput: TPut) -> Result<()> {
+        Ok(self.0.put(table.into(), tput)?)
     }
 }
 
