@@ -1,3 +1,4 @@
-# HBase Thrift for Rust
+# A client for HBase's Thrift Interface
 
-A thin wrapper around HBase's thrift specification
+For now, just reexports the generated code from the Thrift spec
+
