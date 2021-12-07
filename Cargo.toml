@@ -1,6 +1,6 @@
 [package]
 name = "hbase-thrift"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/midnightexigent/hbase-thrift-rs"
@@ -9,8 +9,6 @@ description = "An HBase client via Thrift"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-log = "0.4.14"
-thiserror = "1.0.30"
 thrift = "0.15.0"
 
 [features]
