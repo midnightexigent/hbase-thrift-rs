@@ -5,14 +5,14 @@ use crate::{
 use std::collections::BTreeMap;
 
 pub struct Table<'a> {
-    table_name: Vec<u8>,
+    name: Vec<u8>,
     client: &'a mut dyn THbaseSyncClient,
 }
 
 impl<'a> Table<'a> {
-    pub fn new(table_name: impl Into<Vec<u8>>, client: &'a mut dyn THbaseSyncClient) -> Self {
+    pub fn new(name: impl Into<Vec<u8>>, client: &'a mut dyn THbaseSyncClient) -> Self {
         Self {
-            table_name: table_name.into(),
+            name: name.into(),
             client,
         }
     }
@@ -24,7 +24,7 @@ impl<'a> Table<'a> {
         attributes: impl Into<BTreeMap<Vec<u8>, Vec<u8>>>,
     ) -> Result<()> {
         self.client.mutate_row(
-            self.table_name.clone(),
+            self.name.clone(),
             row.into(),
             mutations.into(),
             attributes.into(),
