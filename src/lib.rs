@@ -1,3 +1,5 @@
+pub mod table;
+
 #[allow(clippy::all, dead_code)]
 pub mod hbase;
 
