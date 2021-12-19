@@ -48,7 +48,7 @@ pub fn client(addrs: impl ToSocketAddrs) -> Result<Client> {
 #[ext(THbaseSyncClientExt)]
 pub impl<H: THbaseSyncClient + Sized> H {
     fn table(&mut self, table_name: String) -> Result<Table<'_, Self>> {
-        if self.is_table_enabled(table_name.into())? {
+        if self.is_table_enabled(table_name.clone().into())? {
             Ok(Table::new(table_name, self))
         } else {
             Err(Error::TableIsNotEnabled(table_name))
@@ -74,13 +74,14 @@ impl<'a, H: THbaseSyncClient> Table<'a, H> {
         attributes: Option<Attributes>,
     ) -> Result<()> {
         let attributes = attributes.unwrap_or_default();
-        if let Some(timestamp) = timestamp {
+        let result = if let Some(timestamp) = timestamp {
             self.client
                 .mutate_rows_ts(self.name.clone(), row_batches, timestamp, attributes)
         } else {
             self.client
                 .mutate_rows(self.name.clone(), row_batches, attributes)
-        }
+        };
+        Ok(result?)
     }
 }
 
