@@ -1,13 +1,12 @@
 #[allow(clippy::all, dead_code)]
 pub mod hbase;
-use thrift::transport::TIoChannel;
-pub use thrift::{
-    self,
+pub use thrift::{self, Error, Result};
+use thrift::{
     protocol::{TBinaryInputProtocol, TBinaryOutputProtocol},
     transport::{
-        ReadHalf, TBufferedReadTransport, TBufferedWriteTransport, TTcpChannel, WriteHalf,
+        ReadHalf, TBufferedReadTransport, TBufferedWriteTransport, TIoChannel, TTcpChannel,
+        WriteHalf,
     },
-    Error, Result,
 };
 
 use easy_ext::ext;
@@ -17,7 +16,7 @@ use std::net::ToSocketAddrs;
 
 pub type Attributes = BTreeMap<Text, Text>;
 
-type Client = HbaseSyncClient<
+pub type Client = HbaseSyncClient<
     TBinaryInputProtocol<TBufferedReadTransport<ReadHalf<TTcpChannel>>>,
     TBinaryOutputProtocol<TBufferedWriteTransport<WriteHalf<TTcpChannel>>>,
 >;
