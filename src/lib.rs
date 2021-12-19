@@ -1,10 +1,12 @@
 #[allow(clippy::all, dead_code)]
 pub mod hbase;
-
-use hbase::{BatchMutation, Mutation, THbaseSyncClient, Text};
 pub use thrift::{self, Error, Result};
 
 use easy_ext::ext;
+use hbase::{BatchMutation, Mutation, THbaseSyncClient, Text};
+use std::collections::BTreeMap;
+
+pub type Attributes = BTreeMap<Text, Text>;
 
 #[ext(THbaseSyncClientExt)]
 pub impl<H: THbaseSyncClient + Sized> H {
@@ -13,7 +15,7 @@ pub impl<H: THbaseSyncClient + Sized> H {
     }
 }
 pub struct Table<'a, H: THbaseSyncClient> {
-    name: Vec<u8>,
+    name: Text,
     client: &'a mut H,
 }
 
@@ -24,8 +26,19 @@ impl<'a, H: THbaseSyncClient> Table<'a, H> {
             client,
         }
     }
-    pub fn put(&mut self) -> Result<()> {
-        todo!()
+    pub fn put(
+        &mut self,
+        row_batches: Vec<BatchMutation>,
+        timestamp: Option<i64>,
+        attributes: Attributes,
+    ) -> Result<()> {
+        if let Some(timestamp) = timestamp {
+            self.client
+                .mutate_rows_ts(self.name.clone(), row_batches, timestamp, attributes)
+        } else {
+            self.client
+                .mutate_rows(self.name.clone(), row_batches, attributes)
+        }
     }
 }
 
