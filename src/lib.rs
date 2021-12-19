@@ -1,6 +1,7 @@
 #[allow(clippy::all, dead_code)]
 pub mod hbase;
-pub use thrift::{self, Error, Result};
+use thiserror::Error as ThisError;
+pub use thrift;
 use thrift::{
     protocol::{TBinaryInputProtocol, TBinaryOutputProtocol},
     transport::{
@@ -24,6 +25,17 @@ pub type Client = HbaseSyncClient<
     TBinaryInputProtocol<TBufferedReadTransport<ReadHalf<TTcpChannel>>>,
     TBinaryOutputProtocol<TBufferedWriteTransport<WriteHalf<TTcpChannel>>>,
 >;
+
+pub type Result<T> = std::result::Result<T, Error>;
+
+#[derive(Debug, ThisError)]
+pub enum Error {
+    #[error(transparent)]
+    Thift(#[from] thrift::Error),
+
+    #[error("table {0} is not enabled")]
+    TableIsNotEnabled(String),
+}
 pub fn client(addrs: impl ToSocketAddrs) -> Result<Client> {
     let mut channel = TTcpChannel::new();
     channel.open(addrs)?;
@@ -35,8 +47,12 @@ pub fn client(addrs: impl ToSocketAddrs) -> Result<Client> {
 
 #[ext(THbaseSyncClientExt)]
 pub impl<H: THbaseSyncClient + Sized> H {
-    fn table(&mut self, table_name: impl Into<Vec<u8>>) -> Table<'_, Self> {
-        Table::new(table_name, self)
+    fn table(&mut self, table_name: String) -> Result<Table<'_, Self>> {
+        if self.is_table_enabled(table_name.into())? {
+            Ok(Table::new(table_name, self))
+        } else {
+            Err(Error::TableIsNotEnabled(table_name))
+        }
     }
 }
 pub struct Table<'a, H: THbaseSyncClient> {

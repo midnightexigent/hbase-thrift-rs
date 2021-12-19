@@ -10,6 +10,7 @@ description = "A client for HBase's Thrift Interface"
 
 [dependencies]
 easy-ext = "1.0.0"
+thiserror = "1.0.30"
 thrift = "0.15.0"
 
 [features]
