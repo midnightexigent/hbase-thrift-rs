@@ -30,14 +30,14 @@ impl<'a, H: THbaseSyncClient> Table<'a, H> {
 }
 
 #[derive(Debug, Clone)]
-pub struct MutationBuilder<T: Into<Text>> {
+pub struct MutationBuilder<T: Into<Text> + Clone> {
     pub is_delete: bool,
     pub write_to_wal: bool,
     pub column: Option<(String, String)>,
     pub value: Option<T>,
 }
 
-impl<T: Into<Text>> MutationBuilder<T> {
+impl<T: Into<Text> + Clone> MutationBuilder<T> {
     pub fn is_delete(&mut self, is_delete: bool) -> &mut Self {
         self.is_delete = is_delete;
         self
@@ -54,29 +54,27 @@ impl<T: Into<Text>> MutationBuilder<T> {
         self.write_to_wal = write_to_wal;
         self
     }
+    pub fn build(&self) -> Mutation {
+        Mutation {
+            column: self
+                .column
+                .as_ref()
+                .map(|(column_family, column_qualifier)| {
+                    format!("{}:{}", column_family, column_qualifier).into()
+                }),
+            value: self.value.clone().map(Into::into),
+            is_delete: Some(self.is_delete),
+            write_to_w_a_l: Some(self.write_to_wal),
+        }
+    }
 }
-impl<T: Into<Text>> Default for MutationBuilder<T> {
+impl<T: Into<Text> + Clone> Default for MutationBuilder<T> {
     fn default() -> Self {
         Self {
             is_delete: false,
             write_to_wal: true,
             value: None,
             column: None,
-        }
-    }
-}
-
-impl<T: Into<Text>> From<MutationBuilder<T>> for Mutation {
-    fn from(mutation_builder: MutationBuilder<T>) -> Self {
-        Self {
-            column: mutation_builder
-                .column
-                .map(|(column_family, column_qualifier)| {
-                    format!("{}:{}", column_family, column_qualifier).into()
-                }),
-            value: mutation_builder.value.map(Into::into),
-            is_delete: Some(mutation_builder.is_delete),
-            write_to_w_a_l: Some(mutation_builder.write_to_wal),
         }
     }
 }
