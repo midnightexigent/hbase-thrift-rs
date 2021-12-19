@@ -1,12 +1,34 @@
 #[allow(clippy::all, dead_code)]
 pub mod hbase;
-pub use thrift::{self, Error, Result};
+use thrift::transport::TIoChannel;
+pub use thrift::{
+    self,
+    protocol::{TBinaryInputProtocol, TBinaryOutputProtocol},
+    transport::{
+        ReadHalf, TBufferedReadTransport, TBufferedWriteTransport, TTcpChannel, WriteHalf,
+    },
+    Error, Result,
+};
 
 use easy_ext::ext;
-use hbase::{BatchMutation, Mutation, THbaseSyncClient, Text};
+use hbase::{BatchMutation, HbaseSyncClient, Mutation, THbaseSyncClient, Text};
 use std::collections::BTreeMap;
+use std::net::ToSocketAddrs;
 
 pub type Attributes = BTreeMap<Text, Text>;
+
+type Client = HbaseSyncClient<
+    TBinaryInputProtocol<TBufferedReadTransport<ReadHalf<TTcpChannel>>>,
+    TBinaryOutputProtocol<TBufferedWriteTransport<WriteHalf<TTcpChannel>>>,
+>;
+pub fn client(addrs: impl ToSocketAddrs) -> Result<Client> {
+    let mut channel = TTcpChannel::new();
+    channel.open(addrs)?;
+    let (i_chan, o_chan) = channel.split()?;
+    let i_prot = TBinaryInputProtocol::new(TBufferedReadTransport::new(i_chan), true);
+    let o_prot = TBinaryOutputProtocol::new(TBufferedWriteTransport::new(o_chan), true);
+    Ok(HbaseSyncClient::new(i_prot, o_prot))
+}
 
 #[ext(THbaseSyncClientExt)]
 pub impl<H: THbaseSyncClient + Sized> H {
