@@ -32,12 +32,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error(transparent)]
     Thift(#[from] thrift::Error),
-
-    #[error("table {0} is not enabled")]
-    TableNotEnabled(String),
-
-    #[error("table {0} does not exist")]
-    TableNotFound(String),
 }
 pub fn client(addrs: impl ToSocketAddrs) -> Result<Client> {
     let mut channel = TTcpChannel::new();
