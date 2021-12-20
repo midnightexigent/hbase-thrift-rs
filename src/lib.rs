@@ -54,7 +54,7 @@ pub impl<H: THbaseSyncClient + Sized> H {
         let table_name: Vec<u8> = table_name.into();
         Ok(self.get_table_names()?.into_iter().any(|x| x == table_name))
     }
-    fn table(&mut self, table_name: &str) -> Result<Table<'_, Self>> {
+    fn table<'a>(&'a mut self, table_name: &'a str) -> Result<Table<'a, Self>> {
         if !self.is_table_enabled(table_name.into())? {
             Err(Error::TableNotEnabled(table_name.to_string()))
         } else if !self.table_exists(table_name)? {
@@ -65,16 +65,13 @@ pub impl<H: THbaseSyncClient + Sized> H {
     }
 }
 pub struct Table<'a, H: THbaseSyncClient> {
-    name: Vec<u8>,
+    name: &'a str,
     client: &'a mut H,
 }
 
 impl<'a, H: THbaseSyncClient> Table<'a, H> {
-    pub fn new(name: impl Into<Vec<u8>>, client: &'a mut H) -> Self {
-        Self {
-            name: name.into(),
-            client,
-        }
+    pub fn new(name: &'a str, client: &'a mut H) -> Self {
+        Self { name, client }
     }
     pub fn put(
         &mut self,
@@ -85,10 +82,10 @@ impl<'a, H: THbaseSyncClient> Table<'a, H> {
         let attributes = attributes.unwrap_or_default();
         let result = if let Some(timestamp) = timestamp {
             self.client
-                .mutate_rows_ts(self.name.clone(), row_batches, timestamp, attributes)
+                .mutate_rows_ts(self.name.into(), row_batches, timestamp, attributes)
         } else {
             self.client
-                .mutate_rows(self.name.clone(), row_batches, attributes)
+                .mutate_rows(self.name.into(), row_batches, attributes)
         };
         Ok(result?)
     }
