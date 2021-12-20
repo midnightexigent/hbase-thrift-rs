@@ -1,5 +1,6 @@
 #[allow(clippy::all, dead_code)]
 pub mod hbase;
+pub use hbase::THbaseSyncClient;
 use thiserror::Error as ThisError;
 pub use thrift;
 use thrift::{
@@ -11,7 +12,7 @@ use thrift::{
 };
 
 use easy_ext::ext;
-use hbase::{BatchMutation, HbaseSyncClient, Mutation, THbaseSyncClient};
+use hbase::{BatchMutation, HbaseSyncClient, Mutation};
 use std::{
     collections::{hash_map::DefaultHasher, BTreeMap},
     hash::{Hash, Hasher},
