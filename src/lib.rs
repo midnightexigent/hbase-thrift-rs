@@ -34,7 +34,10 @@ pub enum Error {
     Thift(#[from] thrift::Error),
 
     #[error("table {0} is not enabled")]
-    TableIsNotEnabled(String),
+    TableNotEnabled(String),
+
+    #[error("table {0} does not exist")]
+    TableNotFound(String),
 }
 pub fn client(addrs: impl ToSocketAddrs) -> Result<Client> {
     let mut channel = TTcpChannel::new();
@@ -47,11 +50,17 @@ pub fn client(addrs: impl ToSocketAddrs) -> Result<Client> {
 
 #[ext(THbaseSyncClientExt)]
 pub impl<H: THbaseSyncClient + Sized> H {
-    fn table(&mut self, table_name: String) -> Result<Table<'_, Self>> {
-        if self.is_table_enabled(table_name.clone().into())? {
-            Ok(Table::new(table_name, self))
+    fn table_exists(&mut self, table_name: &str) -> Result<bool> {
+        let table_name: Vec<u8> = table_name.into();
+        Ok(self.get_table_names()?.into_iter().any(|x| x == table_name))
+    }
+    fn table(&mut self, table_name: &str) -> Result<Table<'_, Self>> {
+        if !self.is_table_enabled(table_name.into())? {
+            Err(Error::TableNotEnabled(table_name.to_string()))
+        } else if !self.table_exists(table_name)? {
+            Err(Error::TableNotFound(table_name.to_string()))
         } else {
-            Err(Error::TableIsNotEnabled(table_name))
+            Ok(Table::new(table_name, self))
         }
     }
 }
