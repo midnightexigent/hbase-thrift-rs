@@ -14,7 +14,7 @@ easy-ext = "1.0.0"
 r2d2 = "0.8.9"
 thiserror = "1.0.30"
 thrift = "0.15.0"
-thrift-pool = { path = "../thrift-pool" }
+thrift-pool = "0.1.1"
 
 [features]
 
