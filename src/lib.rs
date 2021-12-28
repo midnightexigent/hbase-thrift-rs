@@ -1,12 +1,10 @@
 #[allow(clippy::all, dead_code)]
 pub mod hbase;
-pub use hbase::THbaseSyncClient;
-use thiserror::Error as ThisError;
 pub use thrift;
 pub use thrift_pool;
 
 use easy_ext::ext;
-use hbase::{BatchMutation, HbaseSyncClient, Mutation};
+use hbase::{BatchMutation, HbaseSyncClient, Mutation, THbaseSyncClient};
 use std::{
     collections::{hash_map::DefaultHasher, BTreeMap},
     hash::{Hash, Hasher},
@@ -16,14 +14,6 @@ use thrift::protocol::{TInputProtocol, TOutputProtocol};
 use thrift_pool::{FromIoProtocol, HasBroken, IsValid};
 
 pub type Attributes = BTreeMap<Vec<u8>, Vec<u8>>;
-
-pub type Result<T> = std::result::Result<T, Error>;
-
-#[derive(Debug, ThisError)]
-pub enum Error {
-    #[error(transparent)]
-    Thift(#[from] thrift::Error),
-}
 
 impl<IP: TInputProtocol, OP: TOutputProtocol> FromIoProtocol for HbaseSyncClient<IP, OP> {
     type InputProtocol = IP;
@@ -50,7 +40,7 @@ impl<IP: TInputProtocol, OP: TOutputProtocol> HasBroken for HbaseSyncClient<IP, 
 
 #[ext(THbaseSyncClientExt)]
 pub impl<H: THbaseSyncClient> H {
-    fn table_exists(&mut self, table_name: &str) -> Result<bool> {
+    fn table_exists(&mut self, table_name: &str) -> thrift::Result<bool> {
         let table_name: Vec<u8> = table_name.into();
         Ok(self.get_table_names()?.into_iter().any(|x| x == table_name))
     }
@@ -60,7 +50,7 @@ pub impl<H: THbaseSyncClient> H {
         row_batches: Vec<BatchMutation>,
         timestamp: Option<i64>,
         attributes: Option<Attributes>,
-    ) -> Result<()> {
+    ) -> thrift::Result<()> {
         let attributes = attributes.unwrap_or_default();
         let result = if let Some(timestamp) = timestamp {
             self.mutate_rows_ts(table_name.into(), row_batches, timestamp, attributes)
@@ -85,8 +75,12 @@ impl MutationBuilder {
         self.is_delete = is_delete;
         self
     }
-    pub fn column(&mut self, column_family: String, column_qualifier: String) -> &mut Self {
-        self.column = Some((column_family, column_qualifier));
+    pub fn column(
+        &mut self,
+        column_family: impl Into<String>,
+        column_qualifier: impl Into<String>,
+    ) -> &mut Self {
+        self.column = Some((column_family.into(), column_qualifier.into()));
         self
     }
     pub fn value(&mut self, value: impl Into<Vec<u8>>) -> &mut Self {
