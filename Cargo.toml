@@ -16,8 +16,5 @@ thrift = "0.15.0"
 thrift-pool = { version = "0.1.2", default-features = false }
 
 [features]
-default = ["r2d2"]
 r2d2 = ["thrift-pool/enable-r2d2"]
 bb8 = ["thrift-pool/enable-bb8"]
-
-
