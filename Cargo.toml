@@ -13,7 +13,7 @@ async-trait = "0.1.52"
 easy-ext = "1.0.0"
 thiserror = "1.0.30"
 thrift = "0.15.0"
-thrift-pool = "0.1.1"
+thrift-pool = "0.1.2"
 
 [features]
 
