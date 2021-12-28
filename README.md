@@ -41,6 +41,6 @@ fn main() -> Result<(), thrift::Error> {
 
 Other examples are under the [examples](./examples) directory
 
-Also see [vector-http-sink-hbase](https://github.com/midnightexigent/vector-http-sink-hbase) which motivated the creation of this crate
+Also see [vector-http-sink-hbase](https://github.com/midnightexigent/vector-http-sink-hbase) which motivated the creation of this library
 
 [Documentation](https://docs.rs/hbase-thrift/0.7.5/hbase_thrift/)
