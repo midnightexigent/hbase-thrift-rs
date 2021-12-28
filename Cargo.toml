@@ -1,6 +1,6 @@
 [package]
 name = "hbase-thrift"
-version = "0.6.0"
+version = "0.7.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/midnightexigent/hbase-thrift-rs"
@@ -9,8 +9,15 @@ description = "A client for HBase's Thrift Interface"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+async-trait = "0.1.52"
 easy-ext = "1.0.0"
+r2d2 = "0.8.9"
 thiserror = "1.0.30"
 thrift = "0.15.0"
+thrift-pool = { path = "../thrift-pool" }
 
 [features]
+
+[dev-dependencies]
+bb8 = "0.7.1"
+tokio = { version = "1.15.0", features = ["macros"] }

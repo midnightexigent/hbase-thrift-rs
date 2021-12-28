@@ -3,13 +3,7 @@ pub mod hbase;
 pub use hbase::THbaseSyncClient;
 use thiserror::Error as ThisError;
 pub use thrift;
-use thrift::{
-    protocol::{TBinaryInputProtocol, TBinaryOutputProtocol},
-    transport::{
-        ReadHalf, TBufferedReadTransport, TBufferedWriteTransport, TIoChannel, TTcpChannel,
-        WriteHalf,
-    },
-};
+pub use thrift_pool;
 
 use easy_ext::ext;
 use hbase::{BatchMutation, HbaseSyncClient, Mutation};
@@ -17,15 +11,11 @@ use std::{
     collections::{hash_map::DefaultHasher, BTreeMap},
     hash::{Hash, Hasher},
     marker::PhantomData,
-    net::ToSocketAddrs,
 };
+use thrift::protocol::{TInputProtocol, TOutputProtocol};
+use thrift_pool::{FromIoProtocol, HasBroken, IsValid};
 
 pub type Attributes = BTreeMap<Vec<u8>, Vec<u8>>;
-
-pub type Client = HbaseSyncClient<
-    TBinaryInputProtocol<TBufferedReadTransport<ReadHalf<TTcpChannel>>>,
-    TBinaryOutputProtocol<TBufferedWriteTransport<WriteHalf<TTcpChannel>>>,
->;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -34,17 +24,32 @@ pub enum Error {
     #[error(transparent)]
     Thift(#[from] thrift::Error),
 }
-pub fn client(addrs: impl ToSocketAddrs) -> Result<Client> {
-    let mut channel = TTcpChannel::new();
-    channel.open(addrs)?;
-    let (i_chan, o_chan) = channel.split()?;
-    let i_prot = TBinaryInputProtocol::new(TBufferedReadTransport::new(i_chan), true);
-    let o_prot = TBinaryOutputProtocol::new(TBufferedWriteTransport::new(o_chan), true);
-    Ok(HbaseSyncClient::new(i_prot, o_prot))
+
+impl<IP: TInputProtocol, OP: TOutputProtocol> FromIoProtocol for HbaseSyncClient<IP, OP> {
+    type InputProtocol = IP;
+    type OutputProtocol = OP;
+
+    fn from_io_protocol(
+        input_protocol: Self::InputProtocol,
+        output_protocol: Self::OutputProtocol,
+    ) -> Self {
+        Self::new(input_protocol, output_protocol)
+    }
+}
+impl<IP: TInputProtocol, OP: TOutputProtocol> IsValid for HbaseSyncClient<IP, OP> {
+    fn is_valid(&mut self) -> std::result::Result<(), thrift::Error> {
+        let _ = self.get_table_names()?;
+        Ok(())
+    }
+}
+impl<IP: TInputProtocol, OP: TOutputProtocol> HasBroken for HbaseSyncClient<IP, OP> {
+    fn has_broken(&mut self) -> bool {
+        self.get_table_names().is_err()
+    }
 }
 
 #[ext(THbaseSyncClientExt)]
-pub impl<H: THbaseSyncClient + Sized> H {
+pub impl<H: THbaseSyncClient> H {
     fn table_exists(&mut self, table_name: &str) -> Result<bool> {
         let table_name: Vec<u8> = table_name.into();
         Ok(self.get_table_names()?.into_iter().any(|x| x == table_name))
@@ -62,6 +67,7 @@ pub impl<H: THbaseSyncClient + Sized> H {
         } else {
             self.mutate_rows(table_name.into(), row_batches, attributes)
         };
+
         Ok(result?)
     }
 }
