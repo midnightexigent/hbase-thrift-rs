@@ -1,4 +1,4 @@
-# Rust client for HBase's Thrift Interface
+# HBase Thrift
 
 This library provides a way to interact with [HBase](https://hbase.apache.org/)'s thrift interface. 
 
