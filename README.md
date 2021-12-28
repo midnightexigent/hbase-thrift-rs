@@ -8,5 +8,5 @@ Additionnaly, it provides connection pools through [thrift-pool](https://crates.
 
 [Documentation](https://docs.rs/hbase-thrift/0.7.5/hbase_thrift/)
 
-See the [examples](./examples) directory
+Examples are under the [examples](./examples) directory
 
