@@ -1,6 +1,6 @@
 [package]
 name = "hbase-thrift"
-version = "0.7.3"
+version = "0.7.4"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/midnightexigent/hbase-thrift-rs"
