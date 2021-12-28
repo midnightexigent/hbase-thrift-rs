@@ -1,6 +1,6 @@
 # HBase Thrift
 
-This library provides a way to interact with [HBase](https://hbase.apache.org/)'s thrift interface. 
+This library is like [happybase](https://github.com/python-happybase/happybase), but in rust. It provides a way to interact with [HBase](https://hbase.apache.org/)'s thrift interface 
 
 For now, it is mostly comprised of the generated code from its [Thrift Spec](https://github.com/apache/hbase/blob/master/hbase-thrift/src/main/resources/org/apache/hadoop/hbase/thrift/Hbase.thrift)
 
