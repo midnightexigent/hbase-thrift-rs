@@ -1,7 +1,5 @@
 #[allow(clippy::all, dead_code)]
 pub mod hbase;
-pub use thrift;
-pub use thrift_pool;
 
 use easy_ext::ext;
 use hbase::{BatchMutation, HbaseSyncClient, Mutation, THbaseSyncClient};
