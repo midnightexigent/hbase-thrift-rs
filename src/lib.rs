@@ -11,30 +11,26 @@ use std::{
     marker::PhantomData,
 };
 use thrift::protocol::{TInputProtocol, TOutputProtocol};
-use thrift_pool::{FromIoProtocol, HasBroken, IsValid};
+use thrift_pool::{FromProtocol, ThriftConnection};
 
 pub type Attributes = BTreeMap<Vec<u8>, Vec<u8>>;
 
-impl<IP: TInputProtocol, OP: TOutputProtocol> FromIoProtocol for HbaseSyncClient<IP, OP> {
+impl<IP: TInputProtocol, OP: TOutputProtocol> FromProtocol for HbaseSyncClient<IP, OP> {
     type InputProtocol = IP;
     type OutputProtocol = OP;
 
-    fn from_io_protocol(
+    fn from_protocol(
         input_protocol: Self::InputProtocol,
         output_protocol: Self::OutputProtocol,
     ) -> Self {
         Self::new(input_protocol, output_protocol)
     }
 }
-impl<IP: TInputProtocol, OP: TOutputProtocol> IsValid for HbaseSyncClient<IP, OP> {
-    fn is_valid(&mut self) -> std::result::Result<(), thrift::Error> {
+impl<IP: TInputProtocol, OP: TOutputProtocol> ThriftConnection for HbaseSyncClient<IP, OP> {
+    type Error = thrift::Error;
+    fn is_valid(&mut self) -> std::result::Result<(), Self::Error> {
         let _ = self.get_table_names()?;
         Ok(())
-    }
-}
-impl<IP: TInputProtocol, OP: TOutputProtocol> HasBroken for HbaseSyncClient<IP, OP> {
-    fn has_broken(&mut self) -> bool {
-        self.get_table_names().is_err()
     }
 }
 

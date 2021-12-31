@@ -1,6 +1,6 @@
 [package]
 name = "hbase-thrift"
-version = "0.7.6"
+version = "1.0.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/midnightexigent/hbase-thrift-rs"
@@ -12,9 +12,11 @@ description = "A client for HBase's Thrift Interface"
 async-trait = "0.1.52"
 easy-ext = "1.0.0"
 thrift = "0.15.0"
-thrift-pool = { version = "0.1.4", default-features = false }
+thrift-pool = { version = "1.4.0", default-features = false, optional = true }
 
 [features]
-r2d2 = ["thrift-pool/enable-r2d2"]
-bb8 = ["thrift-pool/enable-bb8"]
+default = ["r2d2"]
+r2d2 = ["pool", "thrift-pool/impl-r2d2"]
+bb8 = ["pool", "thrift-pool/impl-bb8"]
+pool = ["thrift-pool"]
 
