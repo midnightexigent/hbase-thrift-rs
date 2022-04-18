@@ -9,10 +9,10 @@ description = "A client for HBase's Thrift Interface"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-async-trait = "0.1.52"
+async-trait = "0.1.53"
 easy-ext = "1.0.0"
 thrift = "0.15.0"
-thrift-pool = { version = "1.4.0", default-features = false, optional = true }
+thrift-pool = { version = "1.4.1", default-features = false, optional = true }
 
 [features]
 default = ["r2d2"]

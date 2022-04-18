@@ -3,11 +3,7 @@ pub mod hbase;
 
 use easy_ext::ext;
 use hbase::{BatchMutation, HbaseSyncClient, Mutation, THbaseSyncClient};
-use std::{
-    collections::{hash_map::DefaultHasher, BTreeMap},
-    hash::{Hash, Hasher},
-    marker::PhantomData,
-};
+use std::collections::BTreeMap;
 use thrift::protocol::{TInputProtocol, TOutputProtocol};
 use thrift_pool::{FromProtocol, ThriftConnection};
 
@@ -46,13 +42,18 @@ pub impl<H: THbaseSyncClient> H {
         attributes: Option<Attributes>,
     ) -> thrift::Result<()> {
         let attributes = attributes.unwrap_or_default();
-        let result = if let Some(timestamp) = timestamp {
+
+        if let Some(timestamp) = timestamp {
             self.mutate_rows_ts(table_name.into(), row_batches, timestamp, attributes)
         } else {
             self.mutate_rows(table_name.into(), row_batches, attributes)
-        };
+        }
+    }
 
-        Ok(result?)
+    fn remove_table(&mut self, table_name: &str) -> thrift::Result<()> {
+        self.disable_table(table_name.into())?;
+        self.delete_table(table_name.into())?;
+        Ok(())
     }
 }
 
@@ -107,61 +108,5 @@ impl Default for MutationBuilder {
             value: None,
             column: None,
         }
-    }
-}
-
-#[derive(Debug, Clone, Default)]
-pub struct BatchMutationBuilder<H: Hasher + Default = DefaultHasher> {
-    pub row: Option<Vec<u8>>,
-    pub mutations: Option<Vec<MutationBuilder>>,
-    phantom: PhantomData<H>,
-}
-impl<H: Hasher + Default> BatchMutationBuilder<H> {
-    pub fn build(&self) -> BatchMutation {
-        match self {
-            Self {
-                row: None,
-                mutations: Some(mutations),
-                ..
-            } => {
-                let mut hasher = H::default();
-                for mutation in mutations {
-                    mutation
-                        .column
-                        .as_ref()
-                        .map(|(_, col_qualifier)| col_qualifier)
-                        .hash(&mut hasher);
-                    mutation.value.hash(&mut hasher);
-                }
-
-                BatchMutation {
-                    mutations: Some(mutations.iter().map(|mutation| mutation.build()).collect()),
-                    row: Some(hasher.finish().to_be_bytes().to_vec()),
-                }
-            }
-            x => BatchMutation {
-                mutations: x
-                    .mutations
-                    .as_ref()
-                    .map(|mutations| mutations.iter().map(|mutation| mutation.build()).collect()),
-                row: x.row.clone(),
-            },
-        }
-    }
-    pub fn mutation(&mut self, mutation: MutationBuilder) -> &mut Self {
-        if let Some(ref mut mutations) = self.mutations {
-            mutations.push(mutation);
-        } else {
-            self.mutations = Some(vec![mutation]);
-        }
-        self
-    }
-    pub fn mutations(&mut self, mutations: Vec<MutationBuilder>) -> &mut Self {
-        self.mutations = Some(mutations);
-        self
-    }
-    pub fn row(&mut self, row: impl Into<Vec<u8>>) -> &mut Self {
-        self.row = Some(row.into());
-        self
     }
 }
