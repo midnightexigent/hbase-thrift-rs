@@ -12,7 +12,7 @@ description = "A client for HBase's Thrift Interface"
 async-trait = "0.1.77"
 easy-ext = "1.0.1"
 thrift = "0.17.0"
-thrift-pool = { version = "1.4.1", default-features = false, optional = true }
+thrift-pool = { version = "1.5", default-features = false, optional = true }
 
 [features]
 default = ["r2d2"]
