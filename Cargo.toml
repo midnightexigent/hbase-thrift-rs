@@ -20,3 +20,5 @@ r2d2 = ["pool", "thrift-pool/impl-r2d2"]
 bb8 = ["pool", "thrift-pool/impl-bb8"]
 pool = ["thrift-pool"]
 
+[dev-dependencies]
+r2d2 = "0.8"
